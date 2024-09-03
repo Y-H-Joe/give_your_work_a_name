@@ -26,13 +26,7 @@ for your work
 ####=======================================================================####
 """
 import random
-
-dp = r'20k.txt'
-words_list = ['metagnome','whole','genome','sequencing','downstream','pipeline']
-top = 10
-
-with open(dp,'r') as r:
-    dict_ = [x.strip() for x in r.readlines()]
+from itertools import combinations
 
 def list_match_list(list1,list2):
     """
@@ -97,6 +91,7 @@ def give_your_work_a_name(dict_,words_list,top,count = 100):
     words_list: key words of your work
     top: how many candidates you want to return
     count: higher count will increase your chance to find one good candidate
+    match_first_letter: Boolean, if True, only match the first letter
     """
     candidates = []
     for candidate in dict_:
@@ -114,7 +109,50 @@ def give_your_work_a_name(dict_,words_list,top,count = 100):
             return candidates
     return candidates
 
+def generate_combinations(lst, k):
+    """
+    Generate all possible lists by removing `k` elements from the original list `lst`.
+    
+    lst: List of elements
+    k: Number of elements to remove
+    
+    Returns a list of lists, where each inner list is a combination with `k` elements removed.
+    """
+    if k == 0:
+        return [lst]  # No elements to remove, return the original list
+    if k >= len(lst):
+        return []  # Can't remove more elements than are in the list
+    
+    # Get all combinations of indices to remove
+    combinations_of_indices = combinations(range(len(lst)), k)
+    
+    result = []
+    for indices in combinations_of_indices:
+        new_list = [lst[i] for i in range(len(lst)) if i not in indices]
+        result.append(new_list)
+     
+    return result
+
 if __name__ == '__main__':
-    candidates = give_your_work_a_name(dict_,words_list,top)
-    print(candidates)
+    
+    dp = r'20k.txt'
+    # words_list = "deep learning based molecular potential energy function".split(" ")
+    words_list = "enviromental factors involved enzyme activity predictor".split(" ")
+    top = 20
+    skip = 1  # Number of words to skip
+    match_first_letter = False  # Whether to match first letter
+    
+    with open(dp,'r') as r:
+        dict_ = [x.strip() for x in r.readlines()]
+    
+    assert skip <= len(words_list)
+    candidates_list = []
+    for s in range(skip+1):
+        # 从words_list中返回skip word之后的list
+        words_skip_list = generate_combinations(words_list, s)
+        for words_skip_list_tmp in words_skip_list:
+            candidates = give_your_work_a_name(dict_,words_skip_list_tmp,top)
+        candidates_list += candidates
+    hashable_candidates_list = [tuple(sublist) for sublist in candidates_list]
+    print(list(set(hashable_candidates_list)))
 
